@@ -1,0 +1,29 @@
+{
+  "name": "nodejs-complete-guide-rest",
+  "version": "1.0.0",
+  "description": "Complete Node.js Guide REST",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mandroide/nodejs-complete-guide-rest.git"
+  },
+  "author": "Manuel Garcia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mandroide/nodejs-complete-guide-rest/issues"
+  },
+  "homepage": "https://github.com/Mandroide/nodejs-complete-guide-rest#readme",
+  "private": true,
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
