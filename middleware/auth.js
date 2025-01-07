@@ -3,20 +3,22 @@ const jsonwebtoken = require('jsonwebtoken');
 const env = require("dotenv")
 env.config();
 
-module.exports.rejectIfUserAlreadyExists = (req, res, next) => {
-    User.findOne({email: req.body.email}).then(user => {
+module.exports.rejectIfUserAlreadyExists = async (req, res, next) => {
+    try {
+        const user = User.findOne({email: req.body.email});
         if (user) {
-            const error = new Error('User already exists');
-            error.status = 422;
-            throw error;
+            const err = new Error('User already exists');
+            err.status = 422;
+            next(err);
+        } else {
+            next();
         }
-        next();
-    }).catch(err => {
+    } catch (err) {
         if (!err.status) {
             err.status = 500;
         }
         next(err);
-    })
+    }
 }
 
 function checkIfAuthenticationIsValid(meetCondition) {

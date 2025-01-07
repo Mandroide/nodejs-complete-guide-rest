@@ -4,26 +4,24 @@ const jsonwebtoken = require('jsonwebtoken');
 const env = require("dotenv")
 env.config();
 
-exports.signup = (req, res, next) => {
-    const email = req.body.email;
-    const name = req.body.name;
-    bcrypt.hash(req.body.password, 12).then(hashedPassword => {
-        const user = new User(
+exports.signup = async (req, res, next) => {
+    try {
+        const email = req.body.email;
+        const name = req.body.name;
+        const hashedPassword = await bcrypt.hash(req.body.password, 12);
+        const user = await new User(
             {
                 email: email,
                 name: name,
                 password: hashedPassword
-            }
-        );
-        return user.save();
-    }).then(user => {
+            }).save();
         res.status(201).json({userId: user._id});
-    }).catch(err => {
+    } catch (err) {
         if (!err.status) {
             err.status = 500;
         }
         next(err);
-    })
+    }
 }
 
 function checkIfMeetsCondition(meetConditions) {
@@ -34,17 +32,15 @@ function checkIfMeetsCondition(meetConditions) {
     }
 }
 
-exports.login = (req, res, next) => {
-    let loadedUser;
-    User.findOne({email: req.body.email}).then(user => {
+exports.login = async (req, res, next) => {
+    try {
+        const user = await User.findOne({email: req.body.email});
         checkIfMeetsCondition(user);
-        loadedUser = user;
-        return bcrypt.compare(req.body.password, user.password)
-    }).then(isEqual => {
+        const isEqual = await bcrypt.compare(req.body.password, user.password);
         checkIfMeetsCondition(isEqual);
-        const userId = loadedUser._id.toString();
+        const userId = user._id.toString();
         jsonwebtoken.sign({
-            email: loadedUser.email, userId: userId,
+            email: user.email, userId: userId,
         }, process.env.JWT_SECRET_KEY, {
             expiresIn: '1h',
         }, (err, token) => {
@@ -54,11 +50,10 @@ exports.login = (req, res, next) => {
                 userId: userId,
             })
         });
-
-    }).catch(err => {
+    } catch (err) {
         if (!err.status) {
             err.status = 500;
         }
         next(err);
-    })
+    }
 }
