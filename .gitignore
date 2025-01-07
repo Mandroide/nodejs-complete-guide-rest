@@ -1,4 +1,5 @@
 message.txt
+.env
 # Logs
 logs
 *.log
