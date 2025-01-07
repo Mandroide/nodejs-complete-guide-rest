@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const Post = require('../models/post');
 const User = require('../models/user');
-const io = require('../socket');
 
 exports.getPosts = async (req, res, next) => {
     const currentPage = +req.query.page ?? 1;
@@ -51,10 +50,6 @@ exports.createPost = async (req, res, next) => {
         const user = await User.findById(req.userId);
         user.posts.push(post);
         await user.save();
-        io.getIO().emit('posts', {
-            action: 'createPost',
-            post: post
-        });
         res.status(201).json({
             message: 'Post created successfully.',
             post: {...post._doc, creator: {_id: req.userId, name: user.name}},
@@ -122,18 +117,7 @@ exports.updatePost = async (req, res, next) => {
             post.title = title;
             post.imageUrl = imageUrl;
             post.content = content;
-            const updatedPost = await post.save();
-            io.getIO().emit('posts', {
-                action: 'updatePost',
-                post: {
-                    ...updatedPost._doc,
-                    creator: {
-                        _id: updatedPost.creator._id,  // Exposing only the user ID
-                        name: updatedPost.creator.name,  // Exposing user name
-                        status: updatedPost.creator.status,  // Exposing user status
-                    },
-                },
-            })
+           await post.save();
             res.status(200).json({
                 post: post
             })
@@ -165,10 +149,6 @@ exports.deletePost = async (req, res, next) => {
             const user = await User.findById(req.userId);
             user.posts.pull(postId)
             await user.save();
-            io.getIO().emit('posts', {
-                action: 'deletePost',
-                post: postId
-            })
             res.status(204).json({
                 message: 'Post deleted successfully.',
             });

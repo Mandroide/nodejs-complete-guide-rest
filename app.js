@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const {v4: uuidv4} = require('uuid');
-const feedRouter = require('./routes/feed');
-const authRouter = require('./routes/auth');
-const userRouter = require('./routes/user');
 const mongoose = require("mongoose");
 const multer = require("multer");
+const {graphqlHTTP} = require('express-graphql');
+const graphqlSchema = require("./graphql/schema");
+const graphqlResolver = require("./graphql/resolvers");
 const env = require("dotenv")
 env.config();
 
@@ -43,9 +43,11 @@ mongoose.connect(process.env.DB_URI, {
     app.use(multer({storage: storage, fileFilter: fileFilter}).single("image"));
 
     app.use('/images', express.static('images'));
-    app.use('/feed', feedRouter);
-    app.use('/auth', authRouter);
-    app.use('/users', userRouter);
+
+    app.use('/graphql', graphqlHTTP({
+        schema: graphqlSchema,
+        rootValue: graphqlResolver
+    }))
 
     app.use((err, req, res, next) => {
         console.log(err);
@@ -53,14 +55,7 @@ mongoose.connect(process.env.DB_URI, {
         const message = err.message;
         res.status(status).json({message: message});
     });
-    const server = app.listen(8080);
-    const io = require('./socket').init(server);
-    io.on('connection', (socket) => {
-        console.log('user connected');
-        socket.on('disconnect', () => {
-            socket.disconnect();
-        })
-    })
+    app.listen(8080);
 }).catch(err => {
     console.log(err);
 })
