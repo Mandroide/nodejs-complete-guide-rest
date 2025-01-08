@@ -53,7 +53,7 @@ mongoose.connect(process.env.DB_URI, {
         const message = err.message;
         res.status(status).json({message: message});
     });
-    const server = app.listen(8080);
+    const server = app.listen(process.env.PORT);
     const io = require('./socket').init(server);
     io.on('connection', (socket) => {
         console.log('user connected');
