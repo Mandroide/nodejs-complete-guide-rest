@@ -6,6 +6,7 @@ const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
 const mongoose = require("mongoose");
 const multer = require("multer");
+const helmet = require("helmet");
 const env = require("dotenv")
 env.config();
 
@@ -41,7 +42,16 @@ mongoose.connect(process.env.DB_URI, {
     }
 
     app.use(multer({storage: storage, fileFilter: fileFilter}).single("image"));
-
+    app.use(helmet());
+    // app.use(
+    //     helmet.contentSecurityPolicy({
+    //         useDefaults: true,
+    //         directives: {
+    //             "img-src": ["'self'", "https: data:"],
+    //             "script-src": ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://maxcdn.bootstrapcdn.com", "https://cdn.jsdelivr.net"],
+    //         }
+    //     })
+    // );
     app.use('/images', express.static('images'));
     app.use('/feed', feedRouter);
     app.use('/auth', authRouter);
