@@ -6,7 +6,10 @@ const multer = require("multer");
 const {graphqlHTTP} = require('express-graphql');
 const graphqlSchema = require("./graphql/schema");
 const graphqlResolver = require("./graphql/resolvers");
+const authMiddleware = require("./middleware/auth");
 const env = require("dotenv")
+const file = require("./util/file");
+const check = require("./util/check");
 env.config();
 
 mongoose.connect(process.env.DB_URI, {
@@ -44,10 +47,48 @@ mongoose.connect(process.env.DB_URI, {
 
     app.use('/images', express.static('images'));
 
+    app.use(authMiddleware.rejectIfInvalidToken)
+
+    app.put('/post-image', (req, res, next) => {
+        check.authCheck(req)
+
+        if (!req.file) {
+            return res.status(200).json({
+                message: 'Image not found'
+            });
+        }
+        if (req.body.oldPath) {
+            file.clearImage(req.body.oldPath);
+        }
+
+        return res.status(201).json({
+            message: 'Image stored',
+            filePath: req.file.path
+        })
+    });
+
+    app.use((req, res, next) => {
+        if (req.method === 'OPTIONS') {
+            return res.sendStatus(200);
+        }
+        next();
+    });
+
     app.use('/graphql', graphqlHTTP({
         schema: graphqlSchema,
-        rootValue: graphqlResolver
-    }))
+        rootValue: graphqlResolver,
+        graphiql: true,
+        customFormatErrorFn(err) {
+            if (!err.originalError) {
+                return err;
+            } else {
+                const data = err.originalError.data
+                const message = err.message ?? 'An error occurred.';
+                const status = err.originalError.status ?? 500;
+                return {message: message, status: status, data: data};
+            }
+        }
+    }));
 
     app.use((err, req, res, next) => {
         console.log(err);

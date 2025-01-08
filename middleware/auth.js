@@ -3,44 +3,25 @@ const jsonwebtoken = require('jsonwebtoken');
 const env = require("dotenv")
 env.config();
 
-module.exports.rejectIfUserAlreadyExists = async (req, res, next) => {
-    try {
-        const user = User.findOne({email: req.body.email});
-        if (user) {
-            const err = new Error('User already exists');
-            err.status = 422;
-            next(err);
-        } else {
-            next();
-        }
-    } catch (err) {
-        if (!err.status) {
-            err.status = 500;
-        }
-        next(err);
-    }
-}
-
-function checkIfAuthenticationIsValid(meetCondition) {
-    if (!meetCondition) {
-        const error = new Error('Not authorized');
-        error.status = 401;
-        throw error;
-    }
-}
-
 module.exports.rejectIfInvalidToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
-    checkIfAuthenticationIsValid(authHeader);
+    if (!authHeader) {
+        req.isAuth = false;
+        return next();
+    }
     const token = authHeader.split(' ')[1];
     let decodedToken;
     try {
         decodedToken = jsonwebtoken.verify(token, process.env.JWT_SECRET_KEY);
     } catch (err) {
-        err.status = 500;
-        throw err;
+        req.isAuth = false;
+        return next();
     }
-    checkIfAuthenticationIsValid(decodedToken);
+    if (!decodedToken) {
+        req.isAuth = false;
+        return next();
+    }
     req.userId = decodedToken.userId;
+    req.isAuth = true;
     next();
 }
