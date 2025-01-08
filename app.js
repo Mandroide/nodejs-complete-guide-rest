@@ -7,6 +7,9 @@ const userRouter = require('./routes/user');
 const mongoose = require("mongoose");
 const multer = require("multer");
 const helmet = require("helmet");
+const morgan = require("morgan");
+const path = require("path");
+const rfs = require('rotating-file-stream')
 const env = require("dotenv")
 env.config();
 
@@ -52,6 +55,17 @@ mongoose.connect(process.env.DB_URI, {
     //         }
     //     })
     // );
+    // Creates a rotating write stream
+    const accessLogStream = rfs.createStream('access.log', {
+        size: "10M", // rotate every 10 MegaBytes written
+        interval: '1d', // rotates daily
+        path: path.join(__dirname, 'logs'),
+        compress: "gzip" // compress rotated files
+    });
+    app.use(morgan('combined', {stream: accessLogStream}));
+    if (app.get("env") !== "production") {
+        app.use(morgan("dev")); //log to console on development
+    }
     app.use('/images', express.static('images'));
     app.use('/feed', feedRouter);
     app.use('/auth', authRouter);
