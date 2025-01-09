@@ -4,7 +4,7 @@
   "description": "Complete Node.js Guide REST",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --timeout 5000",
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
@@ -35,6 +35,9 @@
     "uuid": "^11.0.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "chai": "^5.1.2",
+    "mocha": "^11.0.1",
+    "nodemon": "^3.1.9",
+    "sinon": "^19.0.2"
   }
 }

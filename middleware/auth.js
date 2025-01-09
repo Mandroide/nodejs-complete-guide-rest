@@ -23,7 +23,7 @@ module.exports.rejectIfUserAlreadyExists = async (req, res, next) => {
 
 function checkIfAuthenticationIsValid(meetCondition) {
     if (!meetCondition) {
-        const error = new Error('Not authorized');
+        const error = new Error('Not authenticated');
         error.status = 401;
         throw error;
     }
@@ -37,7 +37,7 @@ module.exports.rejectIfInvalidToken = (req, res, next) => {
     try {
         decodedToken = jsonwebtoken.verify(token, process.env.JWT_SECRET_KEY);
     } catch (err) {
-        err.status = 500;
+        err.status = 400;
         throw err;
     }
     checkIfAuthenticationIsValid(decodedToken);

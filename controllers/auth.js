@@ -55,5 +55,6 @@ exports.login = async (req, res, next) => {
             err.status = 500;
         }
         next(err);
+        return err;
     }
 }
